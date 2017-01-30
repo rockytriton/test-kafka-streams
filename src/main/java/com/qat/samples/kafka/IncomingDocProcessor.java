@@ -18,7 +18,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class IncomingDocProcessor extends Thread {
 	KafkaConsumer<String, JsonNode> consumer;
 	KafkaProducer<String, String> producer;
-	KafkaProducer<String, Long> reportProducer;
+	KafkaProducer<String, String> reportDocCodesProducer;
+	KafkaProducer<String, Long> reportPagesProducer;
 	ObjectMapper mapper = new ObjectMapper();
 
 	public IncomingDocProcessor() {
@@ -40,11 +41,15 @@ public class IncomingDocProcessor extends Thread {
 		consumer = new KafkaConsumer<>(props);
 		producer = new KafkaProducer<>(props);
 		
+		//props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.LongSerializer");
+		
+		reportDocCodesProducer = new KafkaProducer<>(props);
+		
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.LongSerializer");
 		
-		reportProducer = new KafkaProducer<>(props);
+		reportPagesProducer = new KafkaProducer<>(props);
 	    
-		consumer.subscribe(Arrays.asList("incoming-docs2"));
+		consumer.subscribe(Arrays.asList("incoming-docs"));
 	}
 
 	public void run() {
@@ -76,7 +81,9 @@ public class IncomingDocProcessor extends Thread {
 			try {
 				String json = mapper.writeValueAsString(doc);
 				producer.send(new ProducerRecord<String, String>("process-docs", submissionData, json));
-				reportProducer.send(new ProducerRecord<String, Long>("report-docs", doc.getDocCode(), new Long(doc.getNumPages())));
+				reportDocCodesProducer.send(new ProducerRecord<String, String>("report-doc-codes-3", doc.getDocCode(), doc.getDocCode()));
+				reportPagesProducer.send(new ProducerRecord<String, Long>("report-page-count", doc.getDocCode(), new Long(doc.getNumPages())));
+				
 			} catch(JsonProcessingException e) {
 				e.printStackTrace();
 			}

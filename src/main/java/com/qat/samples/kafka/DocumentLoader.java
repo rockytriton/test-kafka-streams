@@ -51,7 +51,7 @@ public class DocumentLoader {
 		
 		String json = mapper.writeValueAsString(Arrays.asList(doc1, doc2, doc3));
 		
-		producer.send(new ProducerRecord<String, String>("incoming-docs2", 
+		producer.send(new ProducerRecord<String, String>("incoming-docs", 
 				sourceSystem + "-" + submissionId, json));
 		
 		producer.flush();
