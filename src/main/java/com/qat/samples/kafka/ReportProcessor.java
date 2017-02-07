@@ -50,10 +50,10 @@ public class ReportProcessor extends Thread {
         final Serde<String> stringSerde = Serdes.String();
         final Serde<Long> longSerde = Serdes.Long();
 
-        KStream<String, Long> docPagesStream = builder.stream(stringSerde, longSerde, "report-doc-codes-3");
+        KStream<String, Long> docPagesStream = builder.stream(stringSerde, longSerde, "report-doc-codes");
         
         docPagesStream.flatMapValues(value -> Arrays.asList(value))
-        	.groupBy((key, pages) -> pages).reduce((v1, v2) -> v1 + v2, "ACountTest3").to("ACountTopic3");
+        	.groupBy((key, pages) -> pages).reduce((v1, v2) -> v1 + v2, "BCountTest").to("BCountTopic");
         
         KafkaStreams kstream = new KafkaStreams(builder, props);
         kstream.start();

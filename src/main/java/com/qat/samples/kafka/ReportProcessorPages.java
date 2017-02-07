@@ -52,7 +52,7 @@ public class ReportProcessorPages extends Thread {
         final Serde<String> stringSerde = Serdes.String();
         final Serde<Long> longSerde = Serdes.Long();
 
-        KStream<String, String> docPagesStream = builder.stream(stringSerde, stringSerde, "report-pages6");
+        KStream<String, String> docPagesStream = builder.stream(stringSerde, stringSerde, "report-doc-codes");
         
         docPagesStream.flatMapValues(value -> Arrays.asList(value))
         	.groupBy((key, pages) -> key).count("ACountTest").toStream().to(stringSerde, longSerde, "ACountTopic");

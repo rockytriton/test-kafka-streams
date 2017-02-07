@@ -81,7 +81,7 @@ public class IncomingDocProcessor extends Thread {
 			try {
 				String json = mapper.writeValueAsString(doc);
 				producer.send(new ProducerRecord<String, String>("process-docs", submissionData, json));
-				reportDocCodesProducer.send(new ProducerRecord<String, String>("report-doc-codes-3", doc.getDocCode(), doc.getDocCode()));
+				reportDocCodesProducer.send(new ProducerRecord<String, String>("report-doc-codes", doc.getDocCode(), doc.getDocCode()));
 				reportPagesProducer.send(new ProducerRecord<String, Long>("report-page-count", doc.getDocCode(), new Long(doc.getNumPages())));
 				
 			} catch(JsonProcessingException e) {
