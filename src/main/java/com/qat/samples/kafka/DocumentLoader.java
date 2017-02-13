@@ -1,5 +1,6 @@
 package com.qat.samples.kafka;
 
+import java.time.LocalDate;
 import java.util.*;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -30,38 +31,19 @@ public class DocumentLoader {
 		producer = new KafkaProducer<>(props);
 		
 		String sourceSystem = "EFSWeb";
-		String submissionId = "SUB_" + System.currentTimeMillis();
-		
-		PatDocument doc1 = new PatDocument();
-		doc1.setDocCode("CLM");
-		doc1.setOfficialDate(new Date());
-		doc1.setNumPages(5);
-		doc1.setSourceId(submissionId + "-0");
-		
-		PatDocument doc2 = new PatDocument();
-		doc2.setDocCode("SPEC");
-		doc2.setOfficialDate(new Date());
-		doc2.setNumPages(50);
-		doc2.setSourceId(submissionId + "-1");
-		
-		PatDocument doc3 = new PatDocument();
-		doc3.setDocCode("ABST");
-		doc3.setOfficialDate(new Date());
-		doc3.setNumPages(1);
-		doc3.setSourceId(submissionId + "-2");
 
 		Random rand = new Random(System.currentTimeMillis());
 
 		for (int i=0; i<35000; i++) {
-			int r = rand.nextInt(5);
+			int r = rand.nextInt(5) + 1;
 			Thread.sleep(1);
-			submissionId = "SUB_" + System.currentTimeMillis();
+			String submissionId = "SUB_" + System.currentTimeMillis();
 
 			List<PatDocument> docs = new ArrayList<>();
 
 			for (int d=0; d<r; d++) {
 				PatDocument doc = new PatDocument();
-				doc.setNumPages(rand.nextInt(50));
+				doc.setNumPages(rand.nextInt(50) + 1);
 				doc.setOfficialDate(new Date());
 				doc.setSourceId(submissionId + "-" + d);
 				doc.setDocCode(docCodes.get(rand.nextInt(docCodes.size())));
@@ -69,12 +51,11 @@ public class DocumentLoader {
 				docs.add(doc);
 			}
 
-			String json = mapper.writeValueAsString(docs); //Arrays.asList(doc1, doc2, doc3));
+			String json = mapper.writeValueAsString(docs);
 
-			producer.send(new ProducerRecord<String, String>("incoming-docs",
+			producer.send(new ProducerRecord<>("incoming-docs",
 					sourceSystem + "-" + submissionId, json));
 
-			//System.out.println("SENT: " + json);
 		}
 
 		producer.flush();

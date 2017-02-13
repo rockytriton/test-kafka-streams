@@ -1,5 +1,6 @@
 package com.qat.samples.kafka;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -21,40 +22,45 @@ import java.util.Properties;
 /**
  * Created by rpulley on 2/10/17.
  */
+@Slf4j
 public class DocCodeCountProcessor {
 
     @Resource(name="docCodeStreamConfig")
     Map<String, Object> docCodeStreamConfig;
 
+    @Autowired
+    DocCodeReportRepository reportRepo;
+
     @PostConstruct
     public void init() {
         Properties props = new Properties();
-
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "app-id");
-        // Where to find Kafka broker(s).
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        // Where to find the corresponding ZooKeeper ensemble.
-        props.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, "localhost:2181");
-        // Specify default (de)serializers for record keys and for record values.
-        props.put(StreamsConfig.KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 2 * 1000);
+        props.putAll(docCodeStreamConfig);
 
         KStreamBuilder builder = new KStreamBuilder();
-
+        
         KStream<String, String> docCodesStream = builder.stream(Serdes.String(), Serdes.String(), "report-doc-codes");
 
         docCodesStream.flatMapValues(value -> Arrays.asList(value))
                 .groupBy((key, docCode) -> docCode).count("DocCodeCount").toStream().to(Serdes.String(), Serdes.Long(), "report-doc-code-count");
 
+        //docCodesStream.flatMapValues(value -> Arrays.asList(value))
+        //        .groupBy((key, pageCount) -> Integer.parseInt(pageCount));
+
+
         KafkaStreams kstream = new KafkaStreams(builder, props);
         kstream.start();
 
-        System.out.println("Started stream processor");
+        log.info("Started DocCode Processor");
     }
 
     @KafkaListener(id = "foo2", topics = "report-doc-code-count", group = "kafka-stream-long-demo", containerFactory = "stringLongFactory")
     public void listen(ConsumerRecord<String, Long> record) {
-        System.out.println("Doc Code: " + record.key() + " = " + record.value());
+        DocCodeReportItem item = new DocCodeReportItem();
+        item.setDocCode(record.key());
+        item.setCount(record.value());
+
+        reportRepo.save(item);
+
+        log.info("DocCode: " + record.key() + " = " + record.value());
     }
 }

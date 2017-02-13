@@ -2,10 +2,7 @@ package com.qat.samples.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.LongDeserializer;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.*;
 import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,7 +73,24 @@ public class BootConfig {
         return new DefaultKafkaConsumerFactory<>(consumerLongConfigs());
     }
 
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Long> consumerLongLongFactory() {
+        Map<String, Object> conf = new HashMap<>(consumerLongConfigs());
+        conf.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        conf.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
+        ConcurrentKafkaListenerContainerFactory f = new ConcurrentKafkaListenerContainerFactory<>();
+        f.setConsumerFactory(new DefaultKafkaConsumerFactory<String, Long>(conf));
 
+        return f;
+    }
+
+    @Bean
+    public ProducerFactory<String, Long> producerLongFactory() {
+        Map<String, Object> conf = new HashMap<>(producerConfigs());
+        conf.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        conf.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
+        return new DefaultKafkaProducerFactory<String, Long>(conf);
+    }
 
     @Bean
     public Map<String, Object> consumerConfigs() {
@@ -107,6 +121,20 @@ public class BootConfig {
     }
 
     @Bean
+    public Map<String, Object> consumerLong2Configs() {
+        Map<String, Object> propsMap = new HashMap<>();
+        propsMap.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        propsMap.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        propsMap.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100");
+        propsMap.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "15000");
+        propsMap.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        propsMap.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
+        propsMap.put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-stream-long2-demo");
+        propsMap.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        return propsMap;
+    }
+
+    @Bean
     public Map<String, Object> docCodeStreamConfig() {
         Map<String, Object> propsMap = new HashMap<>();
 
@@ -128,5 +156,10 @@ public class BootConfig {
     @Bean
     public DocCodeCountProcessor proc() {
         return new DocCodeCountProcessor();
+    }
+
+    @Bean
+    public PageCountProcessor pcProc() {
+        return new PageCountProcessor();
     }
 }

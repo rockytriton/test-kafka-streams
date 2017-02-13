@@ -4,58 +4,77 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.ProducerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by rpulley on 2/10/17.
  */
 public class IncomingDocsProcessor {
 
-    public final CountDownLatch countDownLatch1 = new CountDownLatch(1);
-
     @Autowired
     ProducerFactory<String, String> producerFactory;
 
-    Producer<String, String> prod;
+    @Autowired
+    ProducerFactory<String, Long> producerLongFactory;
+
+
+    @Autowired
+    DocRepository docRepo;
+
+    @Autowired
+    PatRepository patRepo;
+
+    Producer<String, String> producer;
+
+    Producer<String, Long> longProducer;
 
     @PostConstruct
     public void init() {
-        prod = producerFactory.createProducer();
-
-
+        producer = producerFactory.createProducer();
+        longProducer = producerLongFactory.createProducer();
     }
 
     @KafkaListener(id = "foo", topics = "incoming-docs", group = "kafka-stream-demo")
-    public void listen(ConsumerRecord<?, ?> record) {
+    public void listen(ConsumerRecord<String, String> record) {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            PatDocument[] docs = mapper.readValue(record.value().toString().getBytes(), PatDocument[].class);
+            PatDocument[] docs = mapper.readValue(record.value().getBytes(), PatDocument[].class);
+
+            PatApplication app = patRepo.save(new PatApplication());
+
+            //System.out.println("Created app: " + app.getApplicationId());
 
             for (PatDocument doc : docs) {
-                prod.send(new ProducerRecord<String, String>("report-doc-codes", doc.getDocCode(), doc.getDocCode()));
+                doc.setApplicationId(app.getApplicationId());
 
-                //System.out.println("Added doc code: " + doc.getDocCode());
+                doc = docRepo.save(doc);
+
+                //Put in topic for doc code report
+                producer.send(new ProducerRecord<>("report-doc-codes", "docCode", doc.getDocCode()));
+
+                //Put in topic for page count report
+                longProducer.send(new ProducerRecord<>("report-doc-pages", "pages", Long.valueOf(doc.getNumPages())));
+
+                //Put in topic for message distribution processing
+                producer.send(new ProducerRecord<>("message-process", doc.getDocumentId(), mapper.writeValueAsString(doc)));
+
+                if (doc.getDocCode().equals("ABST")) {
+                    //send any ABST documents to PASS for processing
+                    producer.send(new ProducerRecord<>("pass-process", "doc", doc.getDocumentId()));
+                }
+
+                producer.send(new ProducerRecord<>("dav-notification", app.getApplicationId(), doc.getDocumentId()));
             }
 
         } catch(IOException e) {
             System.out.println("Bad one: " + record.value());
         }
-
-        countDownLatch1.countDown();
     }
 }
