@@ -1,8 +1,8 @@
 package com.qat.samples.kafka;
 
-import java.time.LocalDate;
 import java.util.*;
 
+import com.qat.samples.kafka.model.PatDocument;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;

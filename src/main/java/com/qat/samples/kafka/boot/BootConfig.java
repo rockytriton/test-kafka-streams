@@ -1,5 +1,8 @@
-package com.qat.samples.kafka;
+package com.qat.samples.kafka.boot;
 
+import com.qat.samples.kafka.processors.DocCodeCountProcessor;
+import com.qat.samples.kafka.processors.IncomingDocsProcessor;
+import com.qat.samples.kafka.processors.PageCountProcessor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.*;
@@ -14,7 +17,6 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Created by rpulley on 2/9/17.

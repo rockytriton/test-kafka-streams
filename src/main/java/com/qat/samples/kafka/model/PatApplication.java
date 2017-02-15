@@ -1,4 +1,4 @@
-package com.qat.samples.kafka;
+package com.qat.samples.kafka.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

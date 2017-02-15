@@ -1,4 +1,4 @@
-package com.qat.samples.kafka;
+package com.qat.samples.kafka.model;
 import java.time.LocalDate;
 import java.util.Date;
 

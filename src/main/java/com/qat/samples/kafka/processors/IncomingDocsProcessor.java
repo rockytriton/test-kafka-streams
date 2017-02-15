@@ -1,6 +1,10 @@
-package com.qat.samples.kafka;
+package com.qat.samples.kafka.processors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qat.samples.kafka.model.PatApplication;
+import com.qat.samples.kafka.model.PatDocument;
+import com.qat.samples.kafka.repo.DocRepository;
+import com.qat.samples.kafka.repo.PatRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -9,7 +13,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.ProducerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.io.IOException;
 
 /**

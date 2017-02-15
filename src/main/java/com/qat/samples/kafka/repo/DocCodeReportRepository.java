@@ -1,5 +1,6 @@
-package com.qat.samples.kafka;
+package com.qat.samples.kafka.repo;
 
+import com.qat.samples.kafka.model.DocCodeReportItem;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 /**

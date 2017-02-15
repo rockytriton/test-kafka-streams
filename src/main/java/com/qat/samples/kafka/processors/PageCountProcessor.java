@@ -1,4 +1,4 @@
-package com.qat.samples.kafka;
+package com.qat.samples.kafka.processors;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

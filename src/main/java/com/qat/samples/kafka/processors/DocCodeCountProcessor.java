@@ -1,13 +1,11 @@
-package com.qat.samples.kafka;
+package com.qat.samples.kafka.processors;
 
+import com.qat.samples.kafka.model.DocCodeReportItem;
+import com.qat.samples.kafka.repo.DocCodeReportRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KStreamBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +40,6 @@ public class DocCodeCountProcessor {
 
         docCodesStream.flatMapValues(value -> Arrays.asList(value))
                 .groupBy((key, docCode) -> docCode).count("DocCodeCount").toStream().to(Serdes.String(), Serdes.Long(), "report-doc-code-count");
-
-        //docCodesStream.flatMapValues(value -> Arrays.asList(value))
-        //        .groupBy((key, pageCount) -> Integer.parseInt(pageCount));
-
 
         KafkaStreams kstream = new KafkaStreams(builder, props);
         kstream.start();
