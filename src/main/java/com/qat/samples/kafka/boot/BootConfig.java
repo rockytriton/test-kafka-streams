@@ -9,6 +9,7 @@ import org.apache.kafka.common.serialization.*;
 import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.KafkaListenerContainerFactory;
@@ -23,6 +24,7 @@ import java.util.Map;
  */
 @Configuration
 @EnableKafka
+@EnableMongoRepositories("com.qat.samples.kafka")
 public class BootConfig {
     @Bean
     public ProducerFactory<String, String> producerFactory() {

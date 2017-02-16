@@ -1,5 +1,6 @@
 package com.qat.samples.kafka.processors;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serdes;
@@ -19,6 +20,9 @@ import java.util.Properties;
  */
 @Slf4j
 public class PageCountProcessor {
+
+    @Getter
+    private Long pageCounts = 0L;
 
     @PostConstruct
     public void init() {
@@ -59,5 +63,6 @@ public class PageCountProcessor {
         //item.setCount(record.value());
 
         log.info("Doc Pages: " + record.key() + " = " + record.value());
+        pageCounts = record.value();
     }
 }
